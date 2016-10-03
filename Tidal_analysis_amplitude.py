@@ -147,7 +147,6 @@ for const in constituents:
 
     # second filtering, for amplobs = 9999
 
-    counter = 0
     amplobs_filt2 = np.zeros(len(data_length))
     phaobs_filt2 = np.zeros(len(data_length))
     lonobs_filt2 = np.zeros(len(data_length))
@@ -155,24 +154,17 @@ for const in constituents:
     lonmod_filt2 = np.zeros(len(data_length))
     latmod_filt2 = np.zeros(len(data_length))
     indmod_filt2 = np.zeros(len(data_length), dtype=int)
-    for ii in range(0, data_length):
-        if amplobs_filt[ii] != 9999:
-            amplobs_filt2[counter] = amplobs_filt[ii]
-            phaobs_filt2[counter] = phaobs_filt[ii]
-            lonobs_filt2[counter] = lonobs_filt[ii]
-            latobs_filt2[counter] = latobs_filt[ii]
-            lonmod_filt2[counter] = lonmod_filt[ii]
-            latmod_filt2[counter] = latmod_filt[ii]
-            indmod_filt2[counter] = indmod[ii]
-            counter += 1
-
-    amplobs_filt2 = amplobs_filt2[0:counter]
-    phaobs_filt2 = phaobs_filt2[0:counter]
-    lonobs_filt2 = lonobs_filt2[0:counter]
-    latobs_filt2 = latobs_filt2[0:counter]
-    lonmod_filt2 = lonmod_filt2[0:counter]
-    latmod_filt2 = latmod_filt2[0:counter]
-    indmod_filt2 = indmod_filt2[0:counter]
+    valid_idx = 0
+    for idx in range(latobs_filt):
+        if amplobs_filt[idx] != 9999:
+            amplobs_filt2[valid_ix] = amplobs_filt[idx]
+            phaobs_filt2[valid_idx] = phaobs_filt[idx]
+            lonobs_filt2[valid_idx] = lonobs_filt[idx]
+            latobs_filt2[valid_idx] = latobs_filt[idx]
+            lonmod_filt2[valid_idx] = lonmod_filt[idx]
+            latmod_filt2[valid_idx] = latmod_filt[idx]
+            indmod_filt2[valid_idx] = indmod[idx]
+            valid_idx += 1
 
     # Model
 
