@@ -17,6 +17,8 @@
 # 3) Calculation of RMSE and bias for statistical analysis.
 #
 
+import os
+import sys
 import glob
 import numpy as np
 import netCDF4 as nc
@@ -26,19 +28,35 @@ from scipy import spatial
 from scipy.io import netcdf
 import h5py
 
+if len(sys.argv) == 1:
+    root_path = os.getcwd()
+elif len(sys.argv) == 2:
+    root_path = sys.argv[1]
+else:
+    script_name = os.path.basename(__file__)
+    sys.exit("Usage: python %s [path/to/data]" % sys.argv[0])
+
 
 # Define paths here
-datapath = '/media/karen/data1/AMM60/Tidal_Analysis/data/'
-modelpath = '/media/karen/data1/AMM60/Tidal_Analysis/AMM7_tides.nc'
-mskpath = '/media/karen/data1/AMM7/Config_files/mesh_mask_AMM7.nc'
-#modelpath = '/media/karen/data1/AMM60/Tidal_Analysis/AMM60_tides.nc'
-#mskpath = '/media/karen/data1/AMM60/Config_files/mask.nc'
+paths_AMM7 = {
+    data:  os.path.join(root_path, 'AMM60/Tidal_Analysis/data'),
+    model: os.path.join(root_path, 'AMM60/Tidal_Analysis/AMM7_tides.nc'),
+    msk:   os.path.join(root_path, 'AMM7/Config_files/mesh_mask_AMM7.nc'),
+    bathy: os.path.join(root_path, 'AMM7/Config_files/mesh_mask_AMM7.nc'),
+};
+
+paths_AMM60 = {
+    data:  os.path.join(root_path, 'AMM60/Tidal_Analysis/data'),
+    model: os.path.join(root_path, 'AMM60/Tidal_Analysis/AMM60_tides.nc'),
+    msk:   os.path.join(root_path, 'AMM60/Config_files/mask.nc'),
+    bathy: os.path.join(root_path, 'AMM60/Config_files/mesh_zgr.nc'),
+};
+
+paths = paths_AMM7
+
 mskvar = 'tmask'
 use_bathy = 1 # use or not a minimal depth (associated with the lsm)
-#bathypath = '/media/karen/data1/AMM60/Config_files/mesh_zgr.nc'
-bathypath = '/media/karen/data1/AMM7/Config_files/mesh_mask_AMM7.nc'
 bathyvar = 'hbatt'
-
 min_depth = 10 # only data located at greater depths than 'min_depth' are taken into account
 
 
@@ -75,17 +93,17 @@ def do_kdtree(combined_x_y_arrays,points):
 
 ## Read the coordinates and masks
 # Obs
-lonobs = np.genfromtxt(datapath + 'lonobs.txt', dtype='float', delimiter="\n")
-latobs = np.genfromtxt(datapath + 'latobs.txt', dtype='float', delimiter="\n")
+lonobs = np.genfromtxt(paths['data'] + 'lonobs.txt', dtype='float', delimiter="\n")
+latobs = np.genfromtxt(paths['data'] + 'latobs.txt', dtype='float', delimiter="\n")
 coordobs = np.transpose(np.concatenate((lonobs,latobs)).reshape(2,(len(lonobs))))
 
 # Model
-lonmod = readMODELhdf5(mskpath,'nav_lon').flatten()
-latmod = readMODELhdf5(mskpath,'nav_lat').flatten()
+lonmod = readMODELhdf5(paths['msk'],'nav_lon').flatten()
+latmod = readMODELhdf5(paths['msk'],'nav_lat').flatten()
 coordmod = np.transpose(np.concatenate((lonmod,latmod)).reshape(2,(len(lonmod))))
-mask = readMODELhdf5(mskpath,mskvar)[0,0,:,:].flatten()
+mask = readMODELhdf5(paths['msk'],mskvar)[0,0,:,:].flatten()
 if use_bathy == 1:
-    bathy = readMODELhdf5(bathypath,bathyvar).flatten()
+    bathy = readMODELhdf5(paths['bathy'],bathyvar).flatten()
 
 
 ## Get indexes of model grid points where there are observations. Remove data located inland.
@@ -123,8 +141,8 @@ lonmod_filt = lonmod[indmod]
 for const in range(0,len(constituents)):
     print(constituents[const] + ' ...')
     # Obs
-    amplobs = np.genfromtxt(datapath + 'amplitude_obs_' + constituents[const] +'.txt', dtype='float', delimiter="\n")
-    phaobs = np.genfromtxt(datapath + 'phase_obs_' + constituents[const] +'.txt', dtype='float', delimiter="\n")
+    amplobs = np.genfromtxt(paths['data'] + 'amplitude_obs_' + constituents[const] +'.txt', dtype='float', delimiter="\n")
+    phaobs = np.genfromtxt(paths['data'] + 'phase_obs_' + constituents[const] +'.txt', dtype='float', delimiter="\n")
     amplobs_filt = amplobs[indobs]
     phaobs_filt = phaobs[indobs]
 
@@ -157,8 +175,8 @@ for const in range(0,len(constituents)):
     indmod_filt2 = indmod_filt2[0:counter]
 
     # Model
-    xval = readMODELhdf5(modelpath,str(constituents[const])+'x').flatten()
-    yval = readMODELhdf5(modelpath,str(constituents[const])+'y').flatten()
+    xval = readMODELhdf5(paths['model'],str(constituents[const])+'x').flatten()
+    yval = readMODELhdf5(paths['model'],str(constituents[const])+'y').flatten()
     xval_filt = xval[indmod_filt2]
     yval_filt = yval[indmod_filt2]
     amplmod_filt2 = np.sqrt(np.square(xval_filt)+np.square(yval_filt))
