@@ -16,17 +16,6 @@
 #
 # 3) Calculation of RMSE and bias for statistical analysis.
 #
-#
-# ### to do: ###
-#
-#    for lower resolution models, make the difference between T-points, U-points and V-points
-#
-#    big differences between mask and bathy>10m. Should not be the same?
-#
-#    use of hbatt (mesh_zgr) or Bathymetry ?
-#
-
-# In[6]:
 
 import glob
 import numpy as np
@@ -37,8 +26,6 @@ from scipy import spatial
 from scipy.io import netcdf
 import h5py
 
-
-# In[7]:
 
 # Define paths here
 datapath = '/media/karen/data1/AMM60/Tidal_Analysis/data/'
@@ -57,8 +44,6 @@ min_depth = 10 # only data located at greater depths than 'min_depth' are taken 
 
 constituents = ['K1','M2','M4','N2','Q1','O1','S2']
 
-
-# In[8]:
 
 ## Functions
 
@@ -87,8 +72,6 @@ def do_kdtree(combined_x_y_arrays,points):
     dist, indexes = mytree.query(points)
     return indexes
 
-
-# In[9]:
 
 ## Read the coordinates and masks
 # Obs
@@ -135,8 +118,6 @@ latmod_filt = latmod[indmod]
 lonmod_filt = lonmod[indmod]
 
 
-
-# In[10]:
 
 ## Loop over constituents, extract amplitude and phase for each
 for const in range(0,len(constituents)):
@@ -197,9 +178,3 @@ for const in range(0,len(constituents)):
     np.savetxt(constituents[const]+'_lonmod.txt',lonmod_filt2)
     np.savetxt(constituents[const]+'_amplobs.txt',amplobs_filt2)
     np.savetxt(constituents[const]+'_amplmod.txt',amplmod_filt2)
-
-
-# In[ ]:
-
-
-
