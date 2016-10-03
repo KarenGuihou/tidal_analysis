@@ -4,34 +4,34 @@
 # # Tidal analysis - Comparison of simulations against observations on the North-Western European shelf #
 
 # 29/09/2016: Dr. Karen Guihou, NOC.
-# 
+#
 # 3 observation files available: latobs.txt, lonobs.txt, amplobs.txt
 # The original dataset is provided by the BODC (http://www.bodc.ac.uk/)
-# 
+#
 # 1) Extraction of model grid points at the location of the tide-gauges. latmod.txt, lonmod.txt
-# The land-sea mask (lsm) is needed in order to extract only ocean points. 
-# 
+# The land-sea mask (lsm) is needed in order to extract only ocean points.
+#
 # 2) calculation of the amplitude at lonmod/latmod for each constituent
-# Harmonical analysis tool is provided by NEMO (key_diaharm). 
-# 
+# Harmonical analysis tool is provided by NEMO (key_diaharm).
+#
 # 3) Calculation of RMSE and bias for statistical analysis.
-# 
-# 
+#
+#
 # ### to do: ###
-# 
+#
 #    for lower resolution models, make the difference between T-points, U-points and V-points
-#    
+#
 #    big differences between mask and bathy>10m. Should not be the same?
-#    
+#
 #    use of hbatt (mesh_zgr) or Bathymetry ?
-# 
+#
 
 # In[6]:
 
 import glob
 import numpy as np
 import netCDF4 as nc
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 import scipy
 from scipy import spatial
 from scipy.io import netcdf
@@ -63,17 +63,17 @@ constituents = ['K1','M2','M4','N2','Q1','O1','S2']
 ## Functions
 
 def readMODELnc(filename,var):
-    """ 
+    """
     Read a variable from a NEMO output (netcdf 3 or 4)
     """
     f = netcdf.netcdf_file(filename, 'r')
     data = f.variables[var].data
     f.close()
-    
+
     return(data)
 
 def readMODELhdf5(filepath,var):
-    """ 
+    """
     Read a variable from a NEMO output (hdf5)
     """
     f = h5py.File(filepath, 'r')
@@ -103,7 +103,7 @@ coordmod = np.transpose(np.concatenate((lonmod,latmod)).reshape(2,(len(lonmod)))
 mask = readMODELhdf5(mskpath,mskvar)[0,0,:,:].flatten()
 if use_bathy == 1:
     bathy = readMODELhdf5(bathypath,bathyvar).flatten()
-    
+
 
 ## Get indexes of model grid points where there are observations. Remove data located inland.
 ind = do_kdtree(coordmod,coordobs)
@@ -122,7 +122,7 @@ for ii in range(0,len(ind)):
             indmod[counter] = ind[ii]
             indobs[counter] = ii
             counter += 1
-        
+
 indmod = indmod[0:counter]
 indobs = indobs[0:counter]
 
@@ -174,14 +174,14 @@ for const in range(0,len(constituents)):
     lonmod_filt2 = lonmod_filt2[0:counter]
     latmod_filt2 = latmod_filt2[0:counter]
     indmod_filt2 = indmod_filt2[0:counter]
-        
+
     # Model
     xval = readMODELhdf5(modelpath,str(constituents[const])+'x').flatten()
     yval = readMODELhdf5(modelpath,str(constituents[const])+'y').flatten()
     xval_filt = xval[indmod_filt2]
     yval_filt = yval[indmod_filt2]
     amplmod_filt2 = np.sqrt(np.square(xval_filt)+np.square(yval_filt))
-    
+
     # Stats
     N = counter
     rmse = np.sqrt(np.sum(np.square(amplmod_filt2*100 - amplobs_filt2*100))*1/N )
@@ -189,8 +189,8 @@ for const in range(0,len(constituents)):
     print('N = ',N)
     print('RMSE = ',rmse)
     print('MEAN = ',mean)
-    
-    
+
+
     np.savetxt(constituents[const]+"_latobs.txt",latobs_filt2)
     np.savetxt(constituents[const]+'_lonobs.txt',lonobs_filt2)
     np.savetxt(constituents[const]+"_latmod.txt",latmod_filt2)
