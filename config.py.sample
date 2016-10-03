@@ -1,0 +1,23 @@
+# Define paths here
+paths_AMM7 = {
+    data:  os.path.join(root_path, 'REPLACE_ME'),
+    model: os.path.join(root_path, 'REPLACE_ME'),
+    msk:   os.path.join(root_path, 'REPLACE_ME'),
+    bathy: os.path.join(root_path, 'REPLACE_ME'),
+};
+
+paths_AMM60 = {
+    data:  os.path.join(root_path, 'REPLACE_ME'),
+    model: os.path.join(root_path, 'REPLACE_ME'),
+    msk:   os.path.join(root_path, 'REPLACE_ME'),
+    bathy: os.path.join(root_path, 'REPLACE_ME'),
+};
+
+paths = paths_AMM7
+
+mskvar = 'tmask'
+use_bathy = 1 # use or not a minimal depth (associated with the lsm)
+bathyvar = 'hbatt'
+min_depth = 10 # only data located at greater depths than 'min_depth' are taken into account
+
+constituents = ['K1','M2','M4','N2','Q1','O1','S2']

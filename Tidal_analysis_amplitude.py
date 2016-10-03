@@ -27,41 +27,14 @@ import scipy
 from scipy import spatial
 from scipy.io import netcdf
 import h5py
+import config
 
-if len(sys.argv) == 1:
-    root_path = os.getcwd()
-elif len(sys.argv) == 2:
-    root_path = sys.argv[1]
-else:
-    script_name = os.path.basename(__file__)
-    sys.exit("Usage: python %s [path/to/data]" % sys.argv[0])
-
-
-# Define paths here
-paths_AMM7 = {
-    data:  os.path.join(root_path, 'AMM60/Tidal_Analysis/data'),
-    model: os.path.join(root_path, 'AMM60/Tidal_Analysis/AMM7_tides.nc'),
-    msk:   os.path.join(root_path, 'AMM7/Config_files/mesh_mask_AMM7.nc'),
-    bathy: os.path.join(root_path, 'AMM7/Config_files/mesh_mask_AMM7.nc'),
-};
-
-paths_AMM60 = {
-    data:  os.path.join(root_path, 'AMM60/Tidal_Analysis/data'),
-    model: os.path.join(root_path, 'AMM60/Tidal_Analysis/AMM60_tides.nc'),
-    msk:   os.path.join(root_path, 'AMM60/Config_files/mask.nc'),
-    bathy: os.path.join(root_path, 'AMM60/Config_files/mesh_zgr.nc'),
-};
-
-paths = paths_AMM7
-
-mskvar = 'tmask'
-use_bathy = 1 # use or not a minimal depth (associated with the lsm)
-bathyvar = 'hbatt'
-min_depth = 10 # only data located at greater depths than 'min_depth' are taken into account
-
-
-constituents = ['K1','M2','M4','N2','Q1','O1','S2']
-
+paths        = config.paths
+mskvar       = config.mskvar
+use_bathy    = config.use_bathy
+bathyvar     = config.bathyvar
+min_depth    = config.min_depth
+constituents = config.constituents
 
 ## Functions
 
