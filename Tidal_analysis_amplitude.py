@@ -73,6 +73,10 @@ def do_kdtree(combined_x_y_arrays, points):
     (dist, indexes) = mytree.query(points)
     return indexes
 
+def filter_invalid_cols(d, idx):
+    data = np.zeros(len(idx))
+    data = [ d[x] for x in idx ]
+    return data
 
 ## Read the coordinates and masks
 # Obs
@@ -150,28 +154,21 @@ for const in constituents:
         sys.exit("There is something wrong with data for const %s" % const)
         continue
 
-    data_length = len(amplobs_filt)
+    data_length = len(amplobs_filt) # become useless unless you reuse it
 
     # second filtering, for amplobs = 9999
 
-    amplobs_filt2 = np.zeros(len(data_length))
-    phaobs_filt2 = np.zeros(len(data_length))
-    lonobs_filt2 = np.zeros(len(data_length))
-    latobs_filt2 = np.zeros(len(data_length))
-    lonmod_filt2 = np.zeros(len(data_length))
-    latmod_filt2 = np.zeros(len(data_length))
-    indmod_filt2 = np.zeros(len(data_length), dtype=int)
-    valid_idx = 0
-    for idx in range(latobs_filt):
-        if amplobs_filt[idx] != 9999:
-            amplobs_filt2[valid_ix] = amplobs_filt[idx]
-            phaobs_filt2[valid_idx] = phaobs_filt[idx]
-            lonobs_filt2[valid_idx] = lonobs_filt[idx]
-            latobs_filt2[valid_idx] = latobs_filt[idx]
-            lonmod_filt2[valid_idx] = lonmod_filt[idx]
-            latmod_filt2[valid_idx] = latmod_filt[idx]
-            indmod_filt2[valid_idx] = indmod[idx]
-            valid_idx += 1
+    valid_idx = []
+    for idx, lat_obs_val in enumerate(latobs_filt):
+        if lat_obs_val != 9999:
+            valid_idx.append(idx)
+    amplobs_filt = filter_invalid_cols( amplobs_filt, valid_idx )
+    phaobs_filt = filter_invalid_cols( amplobs_filt, valid_idx )
+    lonobs_filt = filter_invalid_cols( amplobs_filt, valid_idx )
+    latobs_filt = filter_invalid_cols( amplobs_filt, valid_idx )
+    lonmod_filt = filter_invalid_cols( amplobs_filt, valid_idx )
+    latmod_filt = filter_invalid_cols( amplobs_filt, valid_idx )
+    indmod_filt = filter_invalid_cols( amplobs_filt, valid_idx )
 
     # Model
 
