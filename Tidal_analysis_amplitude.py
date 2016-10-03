@@ -1,5 +1,5 @@
-
-# coding: utf-8
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 # # Tidal analysis - Comparison of simulations against observations on the North-Western European shelf #
 
