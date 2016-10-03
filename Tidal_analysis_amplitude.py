@@ -138,17 +138,24 @@ for const in constituents:
     amplobs_filt = amplobs[indobs]
     phaobs_filt = phaobs[indobs]
 
+    # Testing data, just in case...
+    if not len(amplobs_filt) == len(phaobs_filt) == len(lonobs_filt) == len(latobs_filt) == len(lonmod_filt) == len(latmod_filt) : #== len(indmod) ?
+        sys.exit("There is something wrong with data for const %s" % const)
+        continue
+
+    data_length = len(amplobs_filt)
+
     # second filtering, for amplobs = 9999
 
     counter = 0
-    amplobs_filt2 = np.zeros(len(amplobs_filt))
-    phaobs_filt2 = np.zeros(len(phaobs_filt))
-    lonobs_filt2 = np.zeros(len(lonobs_filt))
-    latobs_filt2 = np.zeros(len(latobs_filt))
-    lonmod_filt2 = np.zeros(len(lonmod_filt))
-    latmod_filt2 = np.zeros(len(latmod_filt))
-    indmod_filt2 = np.zeros(len(indmod), dtype=int)
-    for ii in range(0, len(latobs_filt)):
+    amplobs_filt2 = np.zeros(len(data_length))
+    phaobs_filt2 = np.zeros(len(data_length))
+    lonobs_filt2 = np.zeros(len(data_length))
+    latobs_filt2 = np.zeros(len(data_length))
+    lonmod_filt2 = np.zeros(len(data_length))
+    latmod_filt2 = np.zeros(len(data_length))
+    indmod_filt2 = np.zeros(len(data_length), dtype=int)
+    for ii in range(0, data_length):
         if amplobs_filt[ii] != 9999:
             amplobs_filt2[counter] = amplobs_filt[ii]
             phaobs_filt2[counter] = phaobs_filt[ii]
