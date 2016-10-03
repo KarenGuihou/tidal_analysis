@@ -1,0 +1,205 @@
+
+# coding: utf-8
+
+# # Tidal analysis - Comparison of simulations against observations on the North-Western European shelf #
+
+# 29/09/2016: Dr. Karen Guihou, NOC.
+# 
+# 3 observation files available: latobs.txt, lonobs.txt, amplobs.txt
+# The original dataset is provided by the BODC (http://www.bodc.ac.uk/)
+# 
+# 1) Extraction of model grid points at the location of the tide-gauges. latmod.txt, lonmod.txt
+# The land-sea mask (lsm) is needed in order to extract only ocean points. 
+# 
+# 2) calculation of the amplitude at lonmod/latmod for each constituent
+# Harmonical analysis tool is provided by NEMO (key_diaharm). 
+# 
+# 3) Calculation of RMSE and bias for statistical analysis.
+# 
+# 
+# ### to do: ###
+# 
+#    for lower resolution models, make the difference between T-points, U-points and V-points
+#    
+#    big differences between mask and bathy>10m. Should not be the same?
+#    
+#    use of hbatt (mesh_zgr) or Bathymetry ?
+# 
+
+# In[6]:
+
+import glob
+import numpy as np
+import netCDF4 as nc
+import matplotlib.pyplot as plt 
+import scipy
+from scipy import spatial
+from scipy.io import netcdf
+import h5py
+
+
+# In[7]:
+
+# Define paths here
+datapath = '/media/karen/data1/AMM60/Tidal_Analysis/data/'
+modelpath = '/media/karen/data1/AMM60/Tidal_Analysis/AMM7_tides.nc'
+mskpath = '/media/karen/data1/AMM7/Config_files/mesh_mask_AMM7.nc'
+#modelpath = '/media/karen/data1/AMM60/Tidal_Analysis/AMM60_tides.nc'
+#mskpath = '/media/karen/data1/AMM60/Config_files/mask.nc'
+mskvar = 'tmask'
+use_bathy = 1 # use or not a minimal depth (associated with the lsm)
+#bathypath = '/media/karen/data1/AMM60/Config_files/mesh_zgr.nc'
+bathypath = '/media/karen/data1/AMM7/Config_files/mesh_mask_AMM7.nc'
+bathyvar = 'hbatt'
+
+min_depth = 10 # only data located at greater depths than 'min_depth' are taken into account
+
+
+constituents = ['K1','M2','M4','N2','Q1','O1','S2']
+
+
+# In[8]:
+
+## Functions
+
+def readMODELnc(filename,var):
+    """ 
+    Read a variable from a NEMO output (netcdf 3 or 4)
+    """
+    f = netcdf.netcdf_file(filename, 'r')
+    data = f.variables[var].data
+    f.close()
+    
+    return(data)
+
+def readMODELhdf5(filepath,var):
+    """ 
+    Read a variable from a NEMO output (hdf5)
+    """
+    f = h5py.File(filepath, 'r')
+    variable = f[var][:]
+    f.close()
+    return (variable)
+
+
+def do_kdtree(combined_x_y_arrays,points):
+    mytree = scipy.spatial.cKDTree(combined_x_y_arrays)
+    dist, indexes = mytree.query(points)
+    return indexes
+
+
+# In[9]:
+
+## Read the coordinates and masks
+# Obs
+lonobs = np.genfromtxt(datapath + 'lonobs.txt', dtype='float', delimiter="\n")
+latobs = np.genfromtxt(datapath + 'latobs.txt', dtype='float', delimiter="\n")
+coordobs = np.transpose(np.concatenate((lonobs,latobs)).reshape(2,(len(lonobs))))
+
+# Model
+lonmod = readMODELhdf5(mskpath,'nav_lon').flatten()
+latmod = readMODELhdf5(mskpath,'nav_lat').flatten()
+coordmod = np.transpose(np.concatenate((lonmod,latmod)).reshape(2,(len(lonmod))))
+mask = readMODELhdf5(mskpath,mskvar)[0,0,:,:].flatten()
+if use_bathy == 1:
+    bathy = readMODELhdf5(bathypath,bathyvar).flatten()
+    
+
+## Get indexes of model grid points where there are observations. Remove data located inland.
+ind = do_kdtree(coordmod,coordobs)
+counter = 0
+indmod = np.zeros((len(ind)),dtype=int)
+indobs = np.zeros((len(ind)),dtype=int)
+for ii in range(0,len(ind)):
+    if use_bathy == 0:
+        if mask[ind[ii]] == 1:
+        #if abs((indmod-ind[ii])).min() != 0 : # remove double points? With that method, keeps the first tide gauge, not a mean
+            indmod[counter] = ind[ii]
+            indobs[counter] = ii
+            counter += 1
+    elif bathy[ind[ii]] > min_depth:
+        if mask[ind[ii]] == 1:
+            indmod[counter] = ind[ii]
+            indobs[counter] = ii
+            counter += 1
+        
+indmod = indmod[0:counter]
+indobs = indobs[0:counter]
+
+print('There are ',counter,' valid observations (out of ',len(lonobs),')')
+
+## Save the filtrered coordinates.
+latobs_filt = latobs[indobs]
+lonobs_filt = lonobs[indobs]
+latmod_filt = latmod[indmod]
+lonmod_filt = lonmod[indmod]
+
+
+
+# In[10]:
+
+## Loop over constituents, extract amplitude and phase for each
+for const in range(0,len(constituents)):
+    print(constituents[const] + ' ...')
+    # Obs
+    amplobs = np.genfromtxt(datapath + 'amplitude_obs_' + constituents[const] +'.txt', dtype='float', delimiter="\n")
+    phaobs = np.genfromtxt(datapath + 'phase_obs_' + constituents[const] +'.txt', dtype='float', delimiter="\n")
+    amplobs_filt = amplobs[indobs]
+    phaobs_filt = phaobs[indobs]
+
+    # second filtering, for amplobs = 9999
+    counter = 0
+    amplobs_filt2 = np.zeros((len(amplobs_filt)))
+    phaobs_filt2 = np.zeros((len(phaobs_filt)))
+    lonobs_filt2 = np.zeros((len(lonobs_filt)))
+    latobs_filt2 = np.zeros((len(latobs_filt)))
+    lonmod_filt2 = np.zeros((len(lonmod_filt)))
+    latmod_filt2 = np.zeros((len(latmod_filt)))
+    indmod_filt2 = np.zeros((len(indmod)),dtype=int)
+    for ii in range(0,len(latobs_filt)):
+        if amplobs_filt[ii] != 9999:
+            amplobs_filt2[counter] = amplobs_filt[ii]
+            phaobs_filt2[counter] = phaobs_filt[ii]
+            lonobs_filt2[counter] = lonobs_filt[ii]
+            latobs_filt2[counter] = latobs_filt[ii]
+            lonmod_filt2[counter] = lonmod_filt[ii]
+            latmod_filt2[counter] = latmod_filt[ii]
+            indmod_filt2[counter] = indmod[ii]
+            counter += 1
+
+    amplobs_filt2 = amplobs_filt2[0:counter]
+    phaobs_filt2 = phaobs_filt2[0:counter]
+    lonobs_filt2 = lonobs_filt2[0:counter]
+    latobs_filt2 = latobs_filt2[0:counter]
+    lonmod_filt2 = lonmod_filt2[0:counter]
+    latmod_filt2 = latmod_filt2[0:counter]
+    indmod_filt2 = indmod_filt2[0:counter]
+        
+    # Model
+    xval = readMODELhdf5(modelpath,str(constituents[const])+'x').flatten()
+    yval = readMODELhdf5(modelpath,str(constituents[const])+'y').flatten()
+    xval_filt = xval[indmod_filt2]
+    yval_filt = yval[indmod_filt2]
+    amplmod_filt2 = np.sqrt(np.square(xval_filt)+np.square(yval_filt))
+    
+    # Stats
+    N = counter
+    rmse = np.sqrt(np.sum(np.square(amplmod_filt2*100 - amplobs_filt2*100))*1/N )
+    mean = np.sum(amplmod_filt2*100 - amplobs_filt2*100) *1/N
+    print('N = ',N)
+    print('RMSE = ',rmse)
+    print('MEAN = ',mean)
+    
+    
+    np.savetxt(constituents[const]+"_latobs.txt",latobs_filt2)
+    np.savetxt(constituents[const]+'_lonobs.txt',lonobs_filt2)
+    np.savetxt(constituents[const]+"_latmod.txt",latmod_filt2)
+    np.savetxt(constituents[const]+'_lonmod.txt',lonmod_filt2)
+    np.savetxt(constituents[const]+'_amplobs.txt',amplobs_filt2)
+    np.savetxt(constituents[const]+'_amplmod.txt',amplmod_filt2)
+
+
+# In[ ]:
+
+
+
