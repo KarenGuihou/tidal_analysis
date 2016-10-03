@@ -28,6 +28,12 @@ from scipy import spatial
 from scipy.io import netcdf
 import h5py
 import config
+import argparse
+
+parser = argparse.ArgumentParser(description='Do some tidal analysis.')
+parser.add_argument('--verbose', '-v', action='count', help='Add a verbose flag')
+args = parser.parse_args()
+verbose = args.verbose
 
 paths = config.paths
 mskvar = config.mskvar
@@ -112,8 +118,8 @@ for idx, val in enumerate(inc):
 indmod = indmod[0:counter]
 indobs = indobs[0:counter]
 
-print ('There are ', counter, ' valid observations (out of ',
-       len(lonobs), ')')
+if verbose:
+    print ('There are %d valid observations (out of %d)' % (counter, len(lonobs)))
 
 ## Save the filtrered coordinates.
 
@@ -125,7 +131,8 @@ lonmod_filt = lonmod[indmod]
 ## Loop over constituents, extract amplitude and phase for each
 
 for const in constituents:
-    print const + ' ...'
+    if verbose == 2:
+        print const, ' ...'
 
     # Obs
 
@@ -182,9 +189,10 @@ for const in constituents:
     rmse = np.sqrt(np.sum(np.square(amplmod_filt2 * 100 - amplobs_filt2
                    * 100)) * 1 / N)
     mean = np.sum(amplmod_filt2 * 100 - amplobs_filt2 * 100) * 1 / N
-    print ('N = ', N)
-    print ('RMSE = ', rmse)
-    print ('MEAN = ', mean)
+    if verbose == 2:
+        print ('N = ', N)
+        print ('RMSE = ', rmse)
+        print ('MEAN = ', mean)
 
     np.savetxt(const + '_latobs.txt', latobs_filt2)
     np.savetxt(const + '_lonobs.txt', lonobs_filt2)
