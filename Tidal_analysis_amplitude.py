@@ -94,19 +94,19 @@ ind = do_kdtree(coordmod, coordobs)
 counter = 0
 indmod = np.zeros(len(ind), dtype=int)
 indobs = np.zeros(len(ind), dtype=int)
-for ii in range(0, len(ind)):
+for idx, val in enumerate(inc):
     if use_bathy == 0:
-        if mask[ind[ii]] == 1:
+        if mask[val] == 1:
 
-        # if abs((indmod-ind[ii])).min() != 0 : # remove double points? With that method, keeps the first tide gauge, not a mean
+        # if abs((indmod-val)).min() != 0 : # remove double points? With that method, keeps the first tide gauge, not a mean
 
-            indmod[counter] = ind[ii]
-            indobs[counter] = ii
+            indmod[counter] = val
+            indobs[counter] = idx
             counter += 1
-    elif bathy[ind[ii]] > min_depth:
-        if mask[ind[ii]] == 1:
-            indmod[counter] = ind[ii]
-            indobs[counter] = ii
+    elif bathy[val] > min_depth:
+        if mask[val] == 1:
+            indmod[counter] = val
+            indobs[counter] = idx
             counter += 1
 
 indmod = indmod[0:counter]
@@ -124,16 +124,16 @@ lonmod_filt = lonmod[indmod]
 
 ## Loop over constituents, extract amplitude and phase for each
 
-for const in range(0, len(constituents)):
-    print constituents[const] + ' ...'
+for const in constituents:
+    print const + ' ...'
 
     # Obs
 
     amplobs = np.genfromtxt(paths['data'] + 'amplitude_obs_'
-                            + constituents[const] + '.txt',
+                            + const + '.txt',
                             dtype='float', delimiter='\n')
     phaobs = np.genfromtxt(paths['data'] + 'phase_obs_'
-                           + constituents[const] + '.txt', dtype='float'
+                           + const + '.txt', dtype='float'
                            , delimiter='\n')
     amplobs_filt = amplobs[indobs]
     phaobs_filt = phaobs[indobs]
@@ -169,9 +169,9 @@ for const in range(0, len(constituents)):
 
     # Model
 
-    xval = readMODELhdf5(paths['model'], str(constituents[const]) + 'x'
+    xval = readMODELhdf5(paths['model'], str(const) + 'x'
                          ).flatten()
-    yval = readMODELhdf5(paths['model'], str(constituents[const]) + 'y'
+    yval = readMODELhdf5(paths['model'], str(const) + 'y'
                          ).flatten()
     xval_filt = xval[indmod_filt2]
     yval_filt = yval[indmod_filt2]
@@ -187,9 +187,9 @@ for const in range(0, len(constituents)):
     print ('RMSE = ', rmse)
     print ('MEAN = ', mean)
 
-    np.savetxt(constituents[const] + '_latobs.txt', latobs_filt2)
-    np.savetxt(constituents[const] + '_lonobs.txt', lonobs_filt2)
-    np.savetxt(constituents[const] + '_latmod.txt', latmod_filt2)
-    np.savetxt(constituents[const] + '_lonmod.txt', lonmod_filt2)
-    np.savetxt(constituents[const] + '_amplobs.txt', amplobs_filt2)
-    np.savetxt(constituents[const] + '_amplmod.txt', amplmod_filt2)
+    np.savetxt(const + '_latobs.txt', latobs_filt2)
+    np.savetxt(const + '_lonobs.txt', lonobs_filt2)
+    np.savetxt(const + '_latmod.txt', latmod_filt2)
+    np.savetxt(const + '_lonmod.txt', lonmod_filt2)
+    np.savetxt(const + '_amplobs.txt', amplobs_filt2)
+    np.savetxt(const + '_amplmod.txt', amplmod_filt2)
