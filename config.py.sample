@@ -1,23 +1,28 @@
 # Define paths here
+import os
+
+root_path = 'REPLACE_ME'
 paths_AMM7 = {
-    data:  os.path.join(root_path, 'REPLACE_ME'),
-    model: os.path.join(root_path, 'REPLACE_ME'),
-    msk:   os.path.join(root_path, 'REPLACE_ME'),
-    bathy: os.path.join(root_path, 'REPLACE_ME'),
+    'data':  os.path.join(root_path, 'REPLACE_ME'),
+    'model': os.path.join(root_path, 'REPLACE_ME'),
+    'msk':   os.path.join(root_path, 'REPLACE_ME'),
+    'bathy': os.path.join(root_path, 'REPLACE_ME'),
 };
 
 paths_AMM60 = {
-    data:  os.path.join(root_path, 'REPLACE_ME'),
-    model: os.path.join(root_path, 'REPLACE_ME'),
-    msk:   os.path.join(root_path, 'REPLACE_ME'),
-    bathy: os.path.join(root_path, 'REPLACE_ME'),
+    'data':  os.path.join(root_path, 'REPLACE_ME'),
+    'model': os.path.join(root_path, 'REPLACE_ME'),
+    'msk':   os.path.join(root_path, 'REPLACE_ME'),
+    'bathy': os.path.join(root_path, 'REPLACE_ME'),
 };
 
-paths = paths_AMM7
+paths = paths_AMM60
+filetype='hdf5'   # available file type for the model outputs: nc or hdf5 
+
 
 mskvar = 'tmask'
 use_bathy = 1 # use or not a minimal depth (associated with the lsm)
 bathyvar = 'hbatt'
 min_depth = 10 # only data located at greater depths than 'min_depth' are taken into account
 
-constituents = ['K1','M2','M4','N2','Q1','O1','S2']
+constituents = ['K1','M4','N2','Q1','O1','S2','M2','O1']
