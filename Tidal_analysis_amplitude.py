@@ -42,6 +42,7 @@ bathyvar = config.bathyvar
 min_depth = config.min_depth
 constituents = config.constituents
 filetype = config.filetype
+outdir = config.outdir
 
 ## Functions
 
@@ -182,9 +183,9 @@ for const in constituents:
         print ('RMSE = ', rmse)
         print ('MEAN = ', mean)
 
-    np.savetxt(const + '_latobs.txt', latobs_filt)
-    np.savetxt(const + '_lonobs.txt', lonobs_filt)
-    np.savetxt(const + '_latmod.txt', latmod_filt)
-    np.savetxt(const + '_lonmod.txt', lonmod_filt)
-    np.savetxt(const + '_amplobs.txt', amplobs_filt)
-    np.savetxt(const + '_amplmod.txt', amplmod_filt)
+    np.savetxt(outdir + const + '_latobs.txt', latobs_filt)
+    np.savetxt(outdir + const + '_lonobs.txt', lonobs_filt)
+    np.savetxt(outdir + const + '_latmod.txt', latmod_filt)
+    np.savetxt(outdir + const + '_lonmod.txt', lonmod_filt)
+    np.savetxt(outdir + const + '_amplobs.txt', amplobs_filt)
+    np.savetxt(outdir + const + '_amplmod.txt', amplmod_filt)

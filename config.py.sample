@@ -18,7 +18,7 @@ paths_AMM60 = {
 
 paths = paths_AMM60
 filetype='hdf5'   # available file type for the model outputs: nc or hdf5 
-
+outdir = 'OUTPUT/'
 
 mskvar = 'tmask'
 use_bathy = 1 # use or not a minimal depth (associated with the lsm)
