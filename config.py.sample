@@ -3,6 +3,7 @@ import os
 
 root_path = 'REPLACE_ME'
 paths_AMM7 = {
+    'idmod':  'AMM7',
     'data':  os.path.join(root_path, 'REPLACE_ME'),
     'model': os.path.join(root_path, 'REPLACE_ME'),
     'msk':   os.path.join(root_path, 'REPLACE_ME'),
@@ -10,19 +11,27 @@ paths_AMM7 = {
 };
 
 paths_AMM60 = {
+    'idmod':  'AMM60',
     'data':  os.path.join(root_path, 'REPLACE_ME'),
     'model': os.path.join(root_path, 'REPLACE_ME'),
     'msk':   os.path.join(root_path, 'REPLACE_ME'),
     'bathy': os.path.join(root_path, 'REPLACE_ME'),
 };
 
-paths = paths_AMM60
+paths = paths_AMM7
 filetype='hdf5'   # available file type for the model outputs: nc or hdf5 
 outdir = 'OUTPUT/'
 
 mskvar = 'tmask'
+umskvar = 'umask'
+vmskvar = 'vmask'
+latvar = 'nav_lat'
+lonvar = 'nav_lon'
+
 use_bathy = 1 # use or not a minimal depth (associated with the lsm)
 bathyvar = 'hbatt'
 min_depth = 10 # only data located at greater depths than 'min_depth' are taken into account
 
-constituents = ['K1','M4','N2','Q1','O1','S2','M2','O1']
+constituents_ampl = ['Q1','O1','K1','N2','M2','S2','M4']
+constituents_currents = ['O1','K1','N2','M2','S2','M4']
+

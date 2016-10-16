@@ -37,12 +37,18 @@ verbose = args.verbose
 
 paths = config.paths
 mskvar = config.mskvar
+umskvar = config.umskvar
+vmskvar = config.vmskvar
+lonvar = config.lonvar
+latvar = config.latvar
 use_bathy = config.use_bathy
 bathyvar = config.bathyvar
 min_depth = config.min_depth
-constituents = config.constituents
+constituents = config.constituents_ampl
 filetype = config.filetype
 outdir = config.outdir
+
+
 
 ## Functions
 
@@ -86,9 +92,11 @@ coordobs = np.transpose(np.concatenate((lonobs, latobs)).reshape(2,
                         len(lonobs)))
 
 # Model
+if verbose :
+    print ('Analysis using : %s ' % paths['idmod'])
 
-lonmod = readMODEL(paths['msk'], 'nav_lon').flatten()
-latmod = readMODEL(paths['msk'], 'nav_lat').flatten()
+lonmod = readMODEL(paths['msk'], lonvar).flatten()
+latmod = readMODEL(paths['msk'], latvar).flatten()
 coordmod = np.transpose(np.concatenate((lonmod, latmod)).reshape(2,
                         len(lonmod)))
 mask = readMODEL(paths['msk'], mskvar)[0, 0, :, :].flatten()
