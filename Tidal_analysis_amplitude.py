@@ -48,7 +48,8 @@ constituents = config.constituents_ampl
 filetype = config.filetype
 outdir = config.outdir
 
-
+if config.root_path == 'REPLACE_ME':
+    sys.exit("You should edit the config file first")
 
 ## Functions
 
