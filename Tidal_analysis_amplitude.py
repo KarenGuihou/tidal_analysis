@@ -3,10 +3,10 @@
 
 ## Tidal analysis - Comparison of simulations against observations on the North-Western European shelf #
 
-# 29/09/2016: Dr. Karen Guihou, NOC.
+# 29/09/2016: Dr. Karen Guihou, NOC (karen.guihou@gmail.com)
 #
-# 3 observation files available: latobs.txt, lonobs.txt, amplobs.txt
-# The original dataset is provided by the BODC (http://www.bodc.ac.uk/)
+# The tidegauge data used here come from the database of sea level constituents used by Marine Data Products
+# and are restricted. Please contact the BODC (http://www.bodc.ac.uk/) for more informations.
 #
 # 1) Extraction of model grid points at the location of the tide-gauges. latmod.txt, lonmod.txt
 # The land-sea mask (lsm) is needed in order to extract only ocean points.
