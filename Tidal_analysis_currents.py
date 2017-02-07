@@ -1,17 +1,17 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-## Tidal analysis - Comparison of simulations against observations on the North-Western European shelf #
-
-# 29/09/2016: Dr. Karen Guihou, NOC.
+## Tidal analysis - Comparison of simulations against observations on the North-Western European shelf ##
 #
-# 3 observation files available: latobs.txt, lonobs.txt, amplobs.txt
-# The original dataset is provided by the BODC (http://www.bodc.ac.uk/)
+# The original current meter data are published under the terms of the NERC Open Data Licence:
+# http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
 #
-# 1) Extraction of model grid points at the location of the tide-gauges. latmod.txt, lonmod.txt
+# 29/09/2016: Dr. Karen Guihou, NOC (karen.guihou@gmail.com)
+#
+# 1) Extraction of model grid points at the location of the current meters
 # The land-sea mask (lsm) is needed in order to extract only ocean points.
 #
-# 2) calculation of the amplitude at lonmod/latmod for each constituent
+# 2) calculation of the current at lonmod/latmod for each constituent
 # Harmonical analysis tool is provided by NEMO (key_diaharm).
 #
 # 3) Calculation of RMSE and bias for statistical analysis.
