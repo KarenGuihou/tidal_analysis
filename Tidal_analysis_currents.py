@@ -47,11 +47,12 @@ bathyvar = config.bathyvar
 min_depth = config.min_depth
 constituents = config.constituents_currents
 filetype = config.filetype
+filetypebat = config.filetypebat
 outdir = config.outdir
 
 ## Functions
 
-def readMODEL(filename, var):
+def readMODEL(filename, var,filetype):
     """
     Read a variable from a NEMO output (netcdf 3 or 4)
     """
@@ -86,14 +87,14 @@ if verbose :
     print ('Analysis using : %s ' % paths['idmod'])
 
 # calculation of location of the model points are done at T-points. But mask is applied at both U and V points.
-lonmod_all = readMODEL(paths['msk'], lonvar).flatten()
-latmod_all = readMODEL(paths['msk'], latvar).flatten()
+lonmod_all = readMODEL(paths['msk'], lonvar,filetype).flatten()
+latmod_all = readMODEL(paths['msk'], latvar,filetype).flatten()
 coordmod_all = np.transpose(np.concatenate((lonmod_all, latmod_all)).reshape(2,
                         len(lonmod_all)))
-umask = readMODEL(paths['msk'], umskvar)[0, 0, :, :].flatten()
-vmask = readMODEL(paths['msk'], vmskvar)[0, 0, :, :].flatten()
+umask = readMODEL(paths['msk'], umskvar,filetype)[0, 0, :, :].flatten()
+vmask = readMODEL(paths['msk'], vmskvar,filetype)[0, 0, :, :].flatten()
 if use_bathy == 1:
-    bathy = readMODEL(paths['bathy'], bathyvar).flatten()
+    bathy = readMODEL(paths['bathy'], bathyvar,filetypebat).flatten()
 
 
 ## Loop over constituents, extract amplitude and phase for each
@@ -190,10 +191,10 @@ for const in constituents:
 
     # Model
     # Get model data
-    XuMod = readMODEL(paths['model'],str(const)+'x_u').flatten()
-    XvMod = readMODEL(paths['model'],str(const)+'x_v').flatten()
-    YuMod = readMODEL(paths['model'],str(const)+'y_u').flatten()
-    YvMod = readMODEL(paths['model'],str(const)+'y_v').flatten()
+    XuMod = readMODEL(paths['model'],str(const)+'x_u',filetype).flatten()
+    XvMod = readMODEL(paths['model'],str(const)+'x_v',filetype).flatten()
+    YuMod = readMODEL(paths['model'],str(const)+'y_u',filetype).flatten()
+    YvMod = readMODEL(paths['model'],str(const)+'y_v',filetype).flatten()
     XuMod_filt = XuMod[indmod_filt]*100
     XvMod_filt = XvMod[indmod_filt]*100
     YuMod_filt = YuMod[indmod_filt]*100

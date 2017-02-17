@@ -46,6 +46,7 @@ bathyvar = config.bathyvar
 min_depth = config.min_depth
 constituents = config.constituents_ampl
 filetype = config.filetype
+filetypebat = config.filetypebat
 outdir = config.outdir
 
 if config.root_path == 'REPLACE_ME':
@@ -53,7 +54,7 @@ if config.root_path == 'REPLACE_ME':
 
 ## Functions
 
-def readMODEL(filename, var):
+def readMODEL(filename, var,filetype):
     """
     Read a variable from a NEMO output (netcdf 3 or 4)
     """
@@ -96,13 +97,13 @@ coordobs = np.transpose(np.concatenate((lonobs, latobs)).reshape(2,
 if verbose :
     print ('Analysis using : %s ' % paths['idmod'])
 
-lonmod = readMODEL(paths['msk'], lonvar).flatten()
-latmod = readMODEL(paths['msk'], latvar).flatten()
+lonmod = readMODEL(paths['msk'], lonvar,filetype).flatten()
+latmod = readMODEL(paths['msk'], latvar,filetype).flatten()
 coordmod = np.transpose(np.concatenate((lonmod, latmod)).reshape(2,
                         len(lonmod)))
-mask = readMODEL(paths['msk'], mskvar)[0, 0, :, :].flatten()
+mask = readMODEL(paths['msk'], mskvar,filetype)[0, 0, :, :].flatten()
 if use_bathy == 1:
-    bathy = readMODEL(paths['bathy'], bathyvar).flatten()
+    bathy = readMODEL(paths['bathy'], bathyvar,filetypebat).flatten()
 
 ## Get indexes of model grid points where there are observations. Remove data located inland.
 
@@ -125,6 +126,7 @@ for idx, val in enumerate(ind):
 indmod = indmod[0:counter]
 indobs = indobs[0:counter]
 
+
 if verbose:
     print ('There are %d valid observations (out of %d)' % (counter, len(lonobs)))
 
@@ -134,6 +136,7 @@ latobs = latobs[indobs]
 lonobs = lonobs[indobs]
 latmod = latmod[indmod]
 lonmod = lonmod[indmod]
+
 
 ## Loop over constituents, extract amplitude and phase for each
 
@@ -154,7 +157,6 @@ for const in constituents:
 
 
     # second filtering, for amplobs = 9999
-
     valid_idx = []
     for idx, val_obs_val in enumerate(amplobs_filt):
         if int(val_obs_val) != 9999 :
@@ -166,7 +168,7 @@ for const in constituents:
     lonmod_filt = filter_invalid_cols( lonmod, valid_idx )
     latmod_filt = filter_invalid_cols( latmod, valid_idx )
     indmod_filt = filter_invalid_cols( indmod, valid_idx , int)
-
+    
     # Testing data, just in case...
     if not len(amplobs_filt) == len(phaobs_filt) == len(lonobs_filt) == len(latobs_filt) == len(lonmod_filt) == len(latmod_filt) : #== len(indmod) ?
         sys.exit("There is something wrong with data for const %s" % const)
@@ -174,12 +176,29 @@ for const in constituents:
     # Model
 
     xval = readMODEL(paths['model'], str(const) + 'x'
-                         ).flatten()
+                         ,filetype).flatten()
     yval = readMODEL(paths['model'], str(const) + 'y'
-                         ).flatten()
+                         ,filetype).flatten()
     xval_filt = xval[indmod_filt]
     yval_filt = yval[indmod_filt]
+
+    # third filtering, in case there are bad values in amplmod
+    valid_idx = []
+    for idx, val_obs_val in enumerate(xval_filt):
+        if int(val_obs_val) <= 9999 :
+            valid_idx.append(idx)
+    amplobs_filt = filter_invalid_cols( amplobs_filt, valid_idx )
+    phaobs_filt = filter_invalid_cols( phaobs_filt, valid_idx )
+    lonobs_filt = filter_invalid_cols( lonobs_filt, valid_idx )
+    latobs_filt = filter_invalid_cols( latobs_filt, valid_idx )
+    lonmod_filt = filter_invalid_cols( lonmod_filt, valid_idx )
+    latmod_filt = filter_invalid_cols( latmod_filt, valid_idx )
+    indmod_filt = filter_invalid_cols( indmod_filt, valid_idx , int)
+    xval_filt = filter_invalid_cols( xval_filt, valid_idx)
+    yval_filt = filter_invalid_cols( yval_filt, valid_idx)
+
     amplmod_filt = np.sqrt(np.square(xval_filt) + np.square(yval_filt))
+    
 
     # Stats
 
