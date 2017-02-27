@@ -40,6 +40,7 @@ paths = config.paths
 mskvar = config.mskvar
 umskvar = config.umskvar
 vmskvar = config.vmskvar
+tmskvar = config.tmskvar
 lonvar = config.lonvar
 latvar=config.latvar
 use_bathy = config.use_bathy
@@ -81,6 +82,29 @@ def filter_invalid_cols(d, idx, ntype=float):
 
     return data
 
+def get_siblings(umask,vmask,lon,lat,val_center,ydim):
+    siblings = []
+    for ii in range(val_center-ydim-1,val_center-ydim+2) + [val_center-1, val_center+1] + range(val_center+ydim-1,val_center+ydim+2):
+        if ii < 0 or ii > len(umask) - 1: # out of bound (W-E bdy)
+            continue
+        if ii%(ydim) == 0 or ii%(ydim-1) == 0 : # out of bound (N-S bdy)
+            continue
+        if umask[ii] == vmask[ii]:
+            point=[mask[ii],lon[ii],lat[ii],ii]
+            siblings.append(point)
+
+    return np.array(siblings)
+
+def get_closest_ocean_point(coordobs,siblings,idx):
+    ind_sea = np.array(np.where(siblings[:,0] == 1)[0])
+    siblings_sea = siblings[ind_sea,:]
+    lonlat = np.concatenate((siblings_sea[:,1], siblings_sea[:,2]))
+    lonlat2d = lonlat.reshape(2,len(siblings_sea[:,1]))
+    coordmod_siblings_sea = np.transpose(lonlat2d)
+    ind_closest = do_kdtree(coordmod_siblings_sea, coordobs[idx])
+    
+    return ind_closest,siblings_sea
+
 ## Read the coordinates and masks
 # Model
 if verbose :
@@ -91,6 +115,7 @@ lonmod_all = readMODEL(paths['msk'], lonvar,filetype).flatten()
 latmod_all = readMODEL(paths['msk'], latvar,filetype).flatten()
 coordmod_all = np.transpose(np.concatenate((lonmod_all, latmod_all)).reshape(2,
                         len(lonmod_all)))
+tmask = readMODEL(paths['msk'], tmskvar,filetype)[0, 0, :, :].flatten()
 umask = readMODEL(paths['msk'], umskvar,filetype)[0, 0, :, :].flatten()
 vmask = readMODEL(paths['msk'], vmskvar,filetype)[0, 0, :, :].flatten()
 if use_bathy == 1:
@@ -143,12 +168,19 @@ for const in constituents:
                 indmod[counter] = val
                 indobs[counter] = idx
                 counter += 1
+            elif use_inland_points == 1:
+                siblings = get_siblings(umask,vmask,lonmod,latmod,val,ydim)
+                if np.sum(siblings[:,0]) > 0:
+                    [ind_closest,siblings_sea] = get_closest_ocean_point(coordobs,siblings,idx)
+                    indmod[counter] = siblings_sea[ind_closest,-1]
+                    indobs[counter] = idx
+                    counter += 1
         elif bathy[val] > min_depth:
             if umask[val] == 1 and vmask[val] == 1:
                 indmod[counter] = val
                 indobs[counter] = idx
                 counter += 1
-
+        
     indmod = indmod[0:counter]
     indobs = indobs[0:counter]
 
