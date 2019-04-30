@@ -49,6 +49,8 @@ constituents = config.constituents_ampl
 filetype = config.filetype
 filetypebat = config.filetypebat
 outdir = config.outdir
+mod_to_cm = config.conv_mod_to_cm
+obs_to_cm = config.conv_obs_to_cm
 
 if config.root_path == 'REPLACE_ME':
     sys.exit("You should edit the config file first")
@@ -106,7 +108,7 @@ def get_closest_ocean_point(coordobs,siblings,idx):
     
     return ind_closest,siblings_sea
     
-
+######## MAIN #################
 
 lonobs = np.genfromtxt(paths['data'] + '/lonobs.txt', dtype='float',
                        delimiter='\n')
@@ -158,9 +160,8 @@ for idx, val in enumerate(ind):
 indmod = indmod[0:counter]
 indobs = indobs[0:counter]
 
-
-if verbose:
-    print ('There are %d valid observations (out of %d)' % (counter, len(lonobs)))
+#if verbose:
+print ('There are %d valid observations (out of %d)' % (counter, len(lonobs)))
 
 ## Save the filtrered coordinates.
 
@@ -173,8 +174,8 @@ lonmod = lonmod[indmod]
 ## Loop over constituents, extract amplitude and phase for each
 
 for const in constituents:
-    if verbose == 2:
-        print const, ' ...'
+    #if verbose == 2:
+    print const, ' ...'
 
     # Obs
 
@@ -184,14 +185,17 @@ for const in constituents:
     phaobs = np.genfromtxt(paths['data'] + '/phase_obs_'
                            + const + '.txt', dtype='float'
                            , delimiter='\n')
-    amplobs_filt = amplobs[indobs]
+    if obs_to_cm ==1:
+        amplobs_filt = amplobs[indobs]*100
+    else:
+        amplobs_filt = amplobs[indobs]
     phaobs_filt = phaobs[indobs]
 
 
     # second filtering, for amplobs = 9999
     valid_idx = []
     for idx, val_obs_val in enumerate(amplobs_filt):
-        if int(val_obs_val) != 9999 :
+        if int(val_obs_val) < 9999 :
             valid_idx.append(idx)
     amplobs_filt = filter_invalid_cols( amplobs_filt, valid_idx )
     phaobs_filt = filter_invalid_cols( phaobs_filt, valid_idx )
@@ -207,18 +211,21 @@ for const in constituents:
 
     # Model
 
-    xval = readMODEL(paths['model'], str(const) + 'x'
+    xval = readMODEL(paths['model'], str(const) + '_z1'
                          ,filetype).flatten()
-    yval = readMODEL(paths['model'], str(const) + 'y'
+    yval = readMODEL(paths['model'], str(const) + '_z2'
                          ,filetype).flatten()
+
     xval_filt = xval[indmod_filt]
     yval_filt = yval[indmod_filt]
 
     # third filtering, in case there are bad values in amplmod
     valid_idx = []
     for idx, val_obs_val in enumerate(xval_filt):
-        if int(val_obs_val) <= 9999 :
+        if int(val_obs_val) < 9999 :
             valid_idx.append(idx)
+        else:
+            print xval_filt[idx],ampl_obs[idx]
     amplobs_filt = filter_invalid_cols( amplobs_filt, valid_idx )
     phaobs_filt = filter_invalid_cols( phaobs_filt, valid_idx )
     lonobs_filt = filter_invalid_cols( lonobs_filt, valid_idx )
@@ -228,7 +235,11 @@ for const in constituents:
     indmod_filt = filter_invalid_cols( indmod_filt, valid_idx , int)
     xval_filt = filter_invalid_cols( xval_filt, valid_idx)
     yval_filt = filter_invalid_cols( yval_filt, valid_idx)
-    amplmod_filt = np.sqrt(np.square(xval_filt) + np.square(yval_filt))
+    
+    if mod_to_cm ==1:
+        amplmod_filt = np.sqrt(np.square(xval_filt) + np.square(yval_filt))*100
+    else:
+        amplmod_filt = np.sqrt(np.square(xval_filt) + np.square(yval_filt))
     
     # 4th filtering, removing points where val > 9*std
     valid_idx = []
@@ -256,13 +267,12 @@ for const in constituents:
     # Stats
 
     N = len(valid_idx)
-    rmse = np.sqrt(np.sum(np.square(amplmod_filt * 100 - amplobs_filt
-                   * 100)) /N )
-    mean = np.sum(amplmod_filt * 100 - amplobs_filt * 100) / N
-    if verbose == 2:
-        print ('N = ', N)
-        print ('RMSE = ', rmse)
-        print ('MEAN = ', mean)
+    rmse = np.sqrt(np.sum(np.square(amplmod_filt - amplobs_filt )) /N )
+    mean = np.sum(amplmod_filt - amplobs_filt) / N
+    #if verbose == 2:
+    print ('N = ', N)
+    print ('RMSE = ', rmse)
+    print ('MEAN = ', mean)
 
     np.savetxt(outdir + const + '_latobs.txt', latobs_filt)
     np.savetxt(outdir + const + '_lonobs.txt', lonobs_filt)
